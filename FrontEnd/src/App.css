@@ -1,0 +1,71 @@
+html,
+body {
+  padding: 0;
+  margin: 0;
+  background-color: azure;
+}
+
+* {
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+button {
+  border: none;
+}
+
+/* ------------------------------ HEADER ------------------------------ */
+
+.header {
+  position: fixed;
+  padding: 3vh 7vw;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: rgba(255, 255, 255, .1);
+  backdrop-filter: blur(15px);
+  height: 13vh;
+  box-shadow: 0 0 10px rgb(0, 0, 0, 0.5);
+  z-index: 1000;
+  box-sizing: border-box;
+}
+
+.navigatorBar {
+  display: flex;
+}
+
+.navigatorBar button {
+  margin: 0 10px 0 10px;
+  padding: 1rem;
+  border-radius: 5px;
+  background-color: transparent;
+  cursor: pointer;
+}
+
+.headerButton:hover {
+  background-color: rgba(255, 255, 255, .1);
+  box-shadow: 0 0 2px black;
+}
+
+/* ------------------------------ Contenido ------------------------------ */
+
+.mainContent {
+  padding: 1rem;
+  background-color: transparent;
+  flex: 1;
+  margin-top: 17.5vh;
+}
+
+.añadirForm {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 0 7vw 0 7vw;
+}
