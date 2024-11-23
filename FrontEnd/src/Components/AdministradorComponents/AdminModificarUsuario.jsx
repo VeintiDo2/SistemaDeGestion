@@ -1,39 +1,54 @@
+import { useEffect, useState } from "react";
 import axios from "axios";
-import { useState } from "react";
 import { PiUserFill } from "react-icons/pi";
 import { PiIdentificationBadgeFill } from "react-icons/pi";
 import { RiLockPasswordFill } from "react-icons/ri";
 import { MdEmail } from "react-icons/md";
-import Swal from "sweetalert2";
 
-const AdminAñadirUsuarios = () => {
-    const [formData, setDataForm] = useState({
-        nombreUsuario: "",
-        nombre: "",
-        contraseña: "",
-        correo: "",
-        rol: "Administrador",
-        estado: "Inactivo",
+import Swal from 'sweetalert2'
+
+const AdminModificarUsuario = ({ selectedUser }) => {
+    const [updateFormData, setUpdateDataForm] = useState({
+        IDUsuario: selectedUser.IDUsuario || "",
+        NombreUsuario: selectedUser.NombreUsuario || "",
+        Nombre: selectedUser.Nombre || "",
+        Contraseña: selectedUser.Contraseña || "",
+        Correo: selectedUser.Correo || "",
+        Rol: selectedUser.Rol || "",
+        Estado: selectedUser.Estado || "",
     });
+
+    useEffect(() => {
+        setUpdateDataForm({
+            IDUsuario: selectedUser.IDUsuario || "",
+            NombreUsuario: selectedUser.NombreUsuario || "",
+            Nombre: selectedUser.Nombre || "",
+            Contraseña: selectedUser.Contraseña || "",
+            Correo: selectedUser.Correo || "",
+            Rol: selectedUser.Rol || "",
+            Estado: selectedUser.Estado || "",
+        });
+    }, [selectedUser]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setDataForm({ ...formData, [name]: value });
+        setUpdateDataForm({ ...updateFormData, [name]: value });
     };
 
-    const handleSubmit = async (e) => {
+    const handleUpdateSubmit = async (e) => {
         e.preventDefault();
+        console.table(updateFormData);
 
         try {
-            const respuesta = await axios.post("http://localhost:5000/api/InsertarUsuario",
-                formData,
+            const respuesta = await axios.put("http://localhost:5000/api/ActualizarUsuario",
+                updateFormData,
                 {
                     headers: { "Content-Type": "application/json" }
                 });
 
             Swal.fire({
-                title: "Añadido",
-                text: "El usuario ha sido añadido",
+                title: "Actualizado",
+                text: "El usuario ha sido actualizado",
                 icon: "success"
             });
 
@@ -41,62 +56,61 @@ const AdminAñadirUsuarios = () => {
             console.error("Error al enviar el formulario:", error);
             alert("Error en el servidor");
         }
-    }
+    };
 
     return (
         <div className="formContainer">
-            <h2>Insertar Usuario</h2>
-            <form onSubmit={handleSubmit} className="formInsertContainer">
+            <h2>Actualizar Usuario</h2>
+            <form onSubmit={handleUpdateSubmit} className="formInsertContainer">
                 <label>
-                    <PiUserFill></PiUserFill>
+                    <PiUserFill />
                     <input
                         type="text"
-                        name="nombreUsuario"
-                        value={formData.nombreUsuario}
+                        name="NombreUsuario"
+                        value={updateFormData.NombreUsuario}
                         onChange={handleChange}
                         placeholder="Nombre de usuario"
                         required
                     />
                 </label>
                 <label>
-                    <PiIdentificationBadgeFill></PiIdentificationBadgeFill>
+                    <PiIdentificationBadgeFill />
                     <input
                         title="Su nombre real"
                         type="text"
-                        name="nombre"
-                        value={formData.nombre}
+                        name="Nombre"
+                        value={updateFormData.Nombre}
                         onChange={handleChange}
                         placeholder="Nombre"
                         required
                     />
                 </label>
                 <label>
-                    <RiLockPasswordFill></RiLockPasswordFill>
+                    <RiLockPasswordFill />
                     <input
                         type="text"
-                        name="contraseña"
-                        value={formData.contraseña}
+                        name="Contraseña"
+                        value={updateFormData.Contraseña}
                         onChange={handleChange}
                         placeholder="Contraseña"
                         required
                     />
                 </label>
                 <label>
-                    <MdEmail></MdEmail>
+                    <MdEmail />
                     <input
                         type="text"
-                        name="correo"
-                        value={formData.correo}
+                        name="Correo"
+                        value={updateFormData.Correo}
                         onChange={handleChange}
                         placeholder="Correo electrónico"
                         required
                     />
                 </label>
                 <label>
-
                     <select
-                        name="rol"
-                        value={formData.rol}
+                        name="Rol"
+                        value={updateFormData.Rol}
                         onChange={handleChange}
                         required
                     >
@@ -106,21 +120,21 @@ const AdminAñadirUsuarios = () => {
                     </select>
                 </label>
                 <label>
-
                     <select
-                        name="estado"
-                        value={formData.estado}
+                        name="Estado"
+                        value={updateFormData.Estado}
                         onChange={handleChange}
                         required
                     >
                         <option value="Activo">Activo</option>
                         <option value="Inactivo">Inactivo</option>
+                        <option value="Bloqueado">Bloqueado</option>
                     </select>
                 </label>
-                <button type="submit">Insertar Usuario</button>
+                <button type="submit">Actualizar Usuario</button>
             </form>
         </div>
-    )
-}
+    );
+};
 
-export default AdminAñadirUsuarios;
+export default AdminModificarUsuario;

@@ -7,7 +7,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-//Consulta #1 - Trae toda la información de la tabla "Usuario"
+//Consulta #1 - Traer toda la información de la tabla "Usuario"
 app.get("/api/usuarios", async (req, res) => {
   try {
     const pool = await getConnection();
@@ -19,40 +19,57 @@ app.get("/api/usuarios", async (req, res) => {
 });
 
 //Consulta #2 - Verifica si existe un usuario.
+//Todo esto es código espagueti...
 app.post("/api/login", async (req, res) => {
   const { nombreUsuario, contraseña } = req.body;
 
   try {
     const pool = await getConnection();
 
-    const resultBlock = await pool
+    // Verificar si el usuario existe
+    const resultUsuario = await pool
       .request()
-      .query(`SELECT Estado FROM Usuario WHERE NombreUsuario = '${nombreUsuario}'`);
+      .input("nombreUsuario", sql.VarChar, nombreUsuario)
+      .query(`SELECT * FROM Usuario WHERE NombreUsuario = @nombreUsuario`);
 
-    const resultadoEstado = resultBlock.recordset[0];
-    if (resultadoEstado && resultadoEstado.Estado === 'Bloqueado') {
-      return res.json({ message: "Bloqueado" });
+    const usuario = resultUsuario.recordset[0];
+
+    if (!usuario) {
+      return res.json({
+        success: false,
+        message: "El usuario no existe en el sistema",
+      });
     }
 
-    const result = await pool
-      .request()
-      .query(`SELECT * FROM Usuario WHERE NombreUsuario = '${nombreUsuario}' AND Contraseña = '${contraseña}'`);
+    if (usuario.Estado === "Bloqueado") {
+      return res.json({ success: false, message: "Bloqueado" });
+    }
 
-    const user = result.recordset[0];
+    const resultLogin = await pool
+      .request()
+      .input("nombreUsuario", sql.VarChar, nombreUsuario)
+      .input("contraseña", sql.VarChar, contraseña)
+      .query(
+        `SELECT * FROM Usuario WHERE NombreUsuario = @nombreUsuario AND Contraseña = @contraseña`
+      );
+
+    const user = resultLogin.recordset[0];
+
     if (user) {
-      res.json({ success: true, message: "Inicio de sesión exitoso" });
+      return res.json({ success: true, message: "Inicio de sesión exitoso" });
     } else {
-      res.json({ success: false, message: "Credenciales incorrectas" });
+      return res.json({ success: false, message: "Credenciales incorrectas" });
     }
   } catch (error) {
+    console.error("Error en el servidor:", error.message);
     res.status(500).json({ success: false, message: "Error en el servidor" });
   }
 });
 
-
 //Consulta #3 - Obtener los DATOS de un usuario
 app.get("/api/ObtenerDatos", async (req, res) => {
   const { nombreUsuario } = req.query
+
   try {
     const pool = await getConnection();
     const result = await pool.request()
@@ -60,7 +77,11 @@ app.get("/api/ObtenerDatos", async (req, res) => {
       .query("SELECT * FROM Usuario WHERE NombreUsuario = @nombreUsuario");
 
     if (result.recordset.length === 0) {
+
+
       return res.status(404).send("Usuario no encontrado");
+
+
     }
 
     res.json(result.recordset[0]);
@@ -151,7 +172,68 @@ app.post("/api/InsertarUsuario", async (req, res) => {
   }
 });
 
+//Consulta #6 - Actualizar un usuario
+app.put("/api/ActualizarUsuario", async (req, res) => {
+  const { IDUsuario, NombreUsuario, Nombre, Contraseña, Correo, Rol, Estado } = req.body;
 
+  // console.log(`id: ${IDUsuario}`)
+  // console.log(`nombre de usuario: ${NombreUsuario}`)
+  // console.log(`nombre: ${Nombre}`)
+  // console.log(`contraseña: ${Contraseña}`)
+  // console.log(`correo: ${Correo}`)
+  // console.log(`rol: ${Rol}`)
+  // console.log(`estado: ${Estado}`)
+
+  if (!NombreUsuario || !Nombre || !Contraseña || !Correo || !Rol || !Estado) {
+    return res.status(400).send("Todos los campos son requeridos.");
+  }
+
+  try {
+    const pool = await getConnection();
+    const result = await pool.request()
+      .input("id", sql.Int, IDUsuario)
+      .input('nombreUsuario', sql.VarChar, NombreUsuario)
+      .input('nombre', sql.VarChar, Nombre)
+      .input('contraseña', sql.VarChar, Contraseña)
+      .input('correo', sql.VarChar, Correo)
+      .input('rol', sql.VarChar, Rol)
+      .input('estado', sql.VarChar, Estado)
+      .query("UPDATE Usuario SET NombreUsuario = @nombreUsuario, Nombre = @nombre, Contraseña = @contraseña, Correo = @correo, Rol = @rol, Estado = @estado WHERE IDUsuario = @id");
+
+    if (result.rowsAffected[0] === 0) {
+      return res.status(404).send("Usuario no encontrado");
+    }
+
+    res.status(200).send("Usuario actualizada exitosamente");
+  } catch (error) {
+    res.status(500).send("Error al actualizar el usuario");
+  }
+});
+
+//Consulta #7 - Eliminar usuario
+app.delete("/api/EliminarUsuario", async (req, res) => {
+  const { ID } = req.query;
+  try {
+    const pool = await getConnection();
+    const resultBitacora = await pool.request()
+      .input("id", sql.Int, ID)
+      .query("DELETE FROM Bitacora WHERE IDUsuario = @id")
+    if (resultBitacora.rowsAffected[0] === 0) {
+      return res.status(404).send("Usuario no encontrado");
+    }
+
+    const result = await pool.request()
+      .input("id", sql.Int, ID)
+      .query("DELETE FROM Usuario WHERE IDUsuario = @id");
+    if (result.rowsAffected[0] === 0) {
+      return res.status(404).send("Usuario no encontrado");
+    }
+
+    res.status(200).send("Usuario eliminado exitosamente");
+  } catch (error) {
+    res.status(500).send("Error al eliminar el usuario");
+  }
+});
 
 
 

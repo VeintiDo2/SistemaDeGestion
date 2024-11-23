@@ -19,6 +19,20 @@ button {
   border: none;
 }
 
+
+
+.swal-text {
+  font-size: 24px;
+}
+
+.swal-title {
+  font-size: 24px;
+}
+
+.swal-icon {
+  font-size: 24px;
+}
+
 /* ------------------------------ HEADER ------------------------------ */
 
 .header {
@@ -53,19 +67,189 @@ button {
   box-shadow: 0 0 2px black;
 }
 
+/* ------------------------------ Login ------------------------------ */
+
+.loginPage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(to bottom, rgb(250, 254, 231), rgb(155, 255, 255));
+}
+
+.loginContainer {
+  font-size: 3vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: aliceblue;
+  padding: 4vw 6vw;
+  border-radius: 3px;
+  gap: 5vw;
+  box-shadow: rgba(240, 46, 170, 0.4) -5px 5px, rgba(240, 46, 170, 0.3) -10px 10px,
+    rgba(240, 46, 170, 0.2) -15px 15px, rgba(240, 46, 170, 0.1) -20px 20px,
+    rgba(240, 46, 170, 0.05) -25px 25px;
+}
+
+.loginContainer div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1vw;
+  font-size: 3vw;
+}
+
+.loginContainer button {
+  width: 25vw;
+  padding: 2vw;
+  background-color: rgb(243, 180, 91);
+  font-size: 1.6vw;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.1), 0 6px 20px 0 rgba(0, 0, 0, 0.1);
+}
+
+.loginContainer button:hover {
+  background-color: rgb(244, 196, 130);
+  transform: scale(1.05);
+}
+
+.loginContainer input {
+  width: 30vw;
+  padding: 1vw 1vw;
+  font-size: 1.6vw;
+  border: none;
+  border-radius: 5px;
+  background-color: transparent;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.1), 0 6px 20px 0 rgba(0, 0, 0, 0.1);
+}
+
+
 /* ------------------------------ Contenido ------------------------------ */
 
 .mainContent {
   padding: 1rem;
   background-color: transparent;
-  flex: 1;
-  margin-top: 17.5vh;
-}
-
-.añadirForm {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-wrap: wrap;
-  padding: 0 7vw 0 7vw;
+  flex: 1;
+  margin-top: 10vh;
 }
+
+.containerUsers {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: aliceblue;
+  border-radius: 5px;
+  padding: 0.5vw;
+  margin: 0.5vw;
+  height: 2.5vw;
+  gap: 35vw;
+  border: 1px solid black;
+  font-size: 2vw;
+}
+
+.containerInfoUsers span:first-child {
+  display: inline-block;
+  width: 5vw;
+  padding: 0vw 2vw;
+  text-align: center;
+}
+
+.containerButtonsUser {
+  display: flex;
+  gap: 10px;
+}
+
+.buttonModifyUser {
+  display: flex;
+  align-items: center;
+  background-color: blueviolet;
+  border-radius: 5px;
+  color: white;
+  cursor: pointer;
+  font-size: 2vw;
+}
+
+.buttonDeleteUser {
+  display: flex;
+  align-items: center;
+  background-color: red;
+  border: 2px solid red;
+  border-radius: 5px;
+  color: white;
+  cursor: pointer;
+  font-size: 2vw;
+}
+
+.formContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: transparent;
+  padding: 5vw;
+  border-radius: 5px;
+  border: 1px solid black;
+  width: 30vw;
+  box-shadow: 0 0 0.8vw black;
+}
+
+.formInsertContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: left;
+  gap: 15px;
+}
+
+.formInsertContainer select {
+  width: 100%;
+  border-radius: 5px;
+  background-color: white;
+}
+
+.formInsertContainer label {
+  font-size: 2.2vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1vw;
+}
+
+.formInsertContainer input {
+  height: 3vh;
+  width: 20vw;
+  padding-left: 0.5vw;
+  background-color: white;
+  border: 1px solid black;
+  border-radius: 5px;
+}
+
+.formInsertContainer button {
+  width: 100%;
+  height: 6vh;
+  background-color: rgb(243, 180, 91);
+  border: 1px solid black;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.formInsertContainer button:hover {
+  background-color: rgb(244, 196, 130);
+  transform: scale(1.05);
+}
+
+
+
+
+
+@media (max-width: 600px) {}
+
+
+@media (min-width: 601px) and (max-width: 1024px) {}
+
+
+@media (min-width: 1025px) {}
