@@ -176,14 +176,6 @@ app.post("/api/InsertarUsuario", async (req, res) => {
 app.put("/api/ActualizarUsuario", async (req, res) => {
   const { IDUsuario, NombreUsuario, Nombre, Contraseña, Correo, Rol, Estado } = req.body;
 
-  // console.log(`id: ${IDUsuario}`)
-  // console.log(`nombre de usuario: ${NombreUsuario}`)
-  // console.log(`nombre: ${Nombre}`)
-  // console.log(`contraseña: ${Contraseña}`)
-  // console.log(`correo: ${Correo}`)
-  // console.log(`rol: ${Rol}`)
-  // console.log(`estado: ${Estado}`)
-
   if (!NombreUsuario || !Nombre || !Contraseña || !Correo || !Rol || !Estado) {
     return res.status(400).send("Todos los campos son requeridos.");
   }
@@ -232,6 +224,20 @@ app.delete("/api/EliminarUsuario", async (req, res) => {
     res.status(200).send("Usuario eliminado exitosamente");
   } catch (error) {
     res.status(500).send("Error al eliminar el usuario");
+  }
+});
+//Fin CRUD
+
+//Consulta #8 - Obtener la bitacora con los nombres de los usuarios.
+app.get("/api/Bitacora", async (req, res) => {
+  try {
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .query("SELECT U.IDUsuario, NombreUsuario, Nombre, Rol, IDBitacora, FORMAT(Fecha, 'dd/MM/yyyy') AS Fecha, CONVERT(VARCHAR(8), Hora, 108) AS Hora, Evento FROM Usuario AS U INNER JOIN Bitacora as B	ON U.IDUsuario = B.IDUsuario");
+    res.json(result.recordset);
+  } catch (error) {
+    res.status(500).send("Error al obtener datos");
   }
 });
 

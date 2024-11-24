@@ -55,6 +55,9 @@ const AdminAjustesUsuarios = ({ userOption, setUserOption }) => {
                     params: { ID }
                 });
 
+                //Esta linea actualiza la lista de usuarios para que el usuario desaparezca una vez eliminado y así evitar el recargar la página.
+                setData(data.filter((updateData) => updateData.IDUsuario !== ID))
+
                 Swal.fire({
                     title: "Eliminado",
                     text: "El usuario ha sido eliminado",

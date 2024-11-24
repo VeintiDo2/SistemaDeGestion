@@ -13,6 +13,7 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  background: linear-gradient(to bottom, rgb(250, 254, 231), rgb(155, 255, 255));
 }
 
 button {
@@ -242,8 +243,26 @@ button {
   transform: scale(1.05);
 }
 
+.tableBitacora {
+  width: 100vw;
+  border-collapse: collapse;
+}
 
+.tableBitacora th,
+.tableBitacora td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+  font-size: 1.5vw;
+}
 
+.tableBitacora tr:nth-child(odd) {
+  background-color: #f9f9f9;
+}
+
+.tableBitacora tr:nth-child(even) {
+  background-color: #e6e6e6;
+}
 
 
 @media (max-width: 600px) {}
