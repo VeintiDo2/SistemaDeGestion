@@ -77,11 +77,7 @@ app.get("/api/ObtenerDatos", async (req, res) => {
       .query("SELECT * FROM Usuario WHERE NombreUsuario = @nombreUsuario");
 
     if (result.recordset.length === 0) {
-
-
       return res.status(404).send("Usuario no encontrado");
-
-
     }
 
     res.json(result.recordset[0]);
@@ -240,6 +236,100 @@ app.get("/api/Bitacora", async (req, res) => {
     res.status(500).send("Error al obtener datos");
   }
 });
+
+//Consulta #9 - Obtener los proveedores
+app.get("/api/Proveedores", async (req, res) => {
+  try {
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .query("SELECT * FROM Proveedores");
+    res.json(result.recordset);
+  } catch (error) {
+    res.status(500).send("Error al obtener datos");
+  }
+});
+
+//Consulta #10 - Obtener los productos
+app.get("/api/Productos", async (req, res) => {
+  const { idProveedor } = req.query;
+  try {
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .input("id", sql.Int, idProveedor)
+      .query("SELECT IDProducto, NombreProducto, Precio FROM Producto WHERE IDProveedor = @id");
+    res.json(result.recordset);
+  } catch (error) {
+    res.status(500).send("Error al obtener datos");
+  }
+});
+
+//Consulta #11 - Insertar datos en Pedidos y DetallesPedidos
+app.post("/api/Pedido", async (req, res) => {
+  const { IDProveedor, IDProducto, Precio, Cantidad, FechaPedido, SubTotal, NombreProducto } = req.body;
+
+  //Prueba de transacciones
+  try {
+
+    const pool = await getConnection();
+
+    const transaction = new sql.Transaction(pool);
+
+    await transaction.begin(); // Inicia la transacción
+
+    //operacion dentro de una transacción
+    const result = await transaction
+      .request()
+      .input("idProveedor", sql.Int, IDProveedor)
+      .input("fechaPedido", sql.VarChar, FechaPedido)
+      .query(`
+        INSERT INTO Pedidos (IDProveedor, FechaPedido)
+        OUTPUT INSERTED.IDPedido
+        VALUES (@idProveedor, @fechaPedido)
+      `);
+
+    if (result.rowsAffected[0] === 0) {
+      return res.status(404).send("No fue posible ingresar el pedido");
+    }
+
+    const IDPedido = result.recordset[0].IDPedido;
+    console.log(IDPedido)
+
+    const resultDetallePedido = await transaction
+      .request()
+      .input("idPedido", sql.Int, IDPedido)
+      .input("idInventario", sql.Int, IDProducto)
+      .input("cantidad", sql.Int, Cantidad)
+      .input("precio", sql.Decimal, Precio)
+      .input("subTotal", sql.Decimal, SubTotal)
+      .query("INSERT INTO DetallePedido (IDPedido, IDInventario, Cantidad, PrecioUnitario, Subtotal) VALUES (@idPedido, @idInventario, @cantidad, @precio, @subTotal)");
+
+    if (resultDetallePedido.rowsAffected[0] === 0) {
+      return res.status(404).send("No fue posible ingresar el detalle del pedido");
+    }
+
+    await transaction
+      .request()
+      .input("idProducto", sql.Int, IDProducto)
+      .input("cantidad", sql.Int, Cantidad)
+      .query("UPDATE Inventario SET Cantidad = Cantidad + @cantidad WHERE IDProducto = @idProducto");
+
+    // Confirmar la transacción si todo está bien
+    await transaction.commit();
+
+  } catch (error) {
+    console.error("Error en el servidor:", error.message);
+
+    // Deshacer la transacción si ocurre un error
+    if (transaction) {
+      await transaction.rollback();
+    }
+    res.status(500).json({ success: false, message: "Error en el servidor" });
+  }
+});
+
+
 
 
 
