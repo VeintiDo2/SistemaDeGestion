@@ -5,6 +5,7 @@ import Swal from "sweetalert2";
 const AdminPedidos = () => {
     const [provData, setProvData] = useState([]);
     const [productData, setProductData] = useState([])
+    const [inventarioData, setInventarioData] = useState([])
 
     const [pedidoData, setPedidoData] = useState({
         IDProveedor: "",
@@ -15,6 +16,12 @@ const AdminPedidos = () => {
         SubTotal: 0,
         NombreProducto: "",
     })
+
+    useEffect(() => {
+        axios.get("http://localhost:5000/api/InventarioProductos")
+            .then(response => setInventarioData(response.data))
+            .catch(error => console.error("Error al obtener datos:", error));
+    }, []);
 
     const obtenerFechaHoraActual = () => {
         const fechaActual = new Date();
@@ -50,20 +57,24 @@ const AdminPedidos = () => {
 
     const requestPedido = async () => {
         try {
-            const respuesta = await axios.post("http://localhost:5000/api/Pedido",
-                pedidoData,
-                {
-                    headers: { "Content-Type": "application/json" }
-                });
-
-            Swal.fire({
-                title: "Exito",
-                text: "Pedido exitoso",
-                icon: "success"
+            console.log("Enviando solicitud POST...");
+            const respuesta = await axios.post("http://localhost:5000/api/Pedido", pedidoData, {
+                headers: { "Content-Type": "application/json" }
             });
+            console.log("Respuesta recibida:", respuesta);
+
+            // Re-fetch the inventory data after submitting the order
+            console.log("Entrando en la actualización del inventario");
+            axios.get("http://localhost:5000/api/InventarioProductos")
+                .then(response => {
+                    console.log("Inventario actualizado:", response);
+                    setInventarioData(response.data);  // Actualiza el estado
+                    console.log("Nuevo estado de inventario:", response.data);  // Asegúrate de que los datos sean correctos
+                })
+                .catch(error => console.error("Error al obtener datos de inventario:", error));
 
         } catch (error) {
-            console.error("Error en el servidor:", error);
+            console.error("Error al procesar el pedido:", error.response || error.message);
             Swal.fire({
                 title: "Error",
                 text: "Ocurrió un problema al procesar el pedido",
@@ -71,6 +82,17 @@ const AdminPedidos = () => {
             });
         }
     };
+
+
+    const actualizarInventario = (idProducto, nuevaCantidad) => {
+        setInventarioData(prevInventario => {
+            return prevInventario.map(item =>
+                item.IDProducto === idProducto
+                    ? { ...item, Cantidad: item.Cantidad + nuevaCantidad }
+                    : item
+            );
+        });
+    }
 
 
     const handlePedido = (e) => {
@@ -130,6 +152,7 @@ const AdminPedidos = () => {
 
     const handleSubmit = (e) => {
 
+
         e.preventDefault();
         if (!pedidoData.IDProducto || !pedidoData.Precio || !pedidoData.Cantidad) {
             Swal.fire({
@@ -140,12 +163,19 @@ const AdminPedidos = () => {
         } else {
             console.table(pedidoData);
             requestPedido()
+
+            Swal.fire({
+                title: "Exito",
+                text: "Pedido exitoso",
+                icon: "success"
+            });
         }
     };
 
     const calculoSubtotal = () => {
         const subtotal = pedidoData.Cantidad * pedidoData.Precio
         setPedidoData((pedidoData) => ({ ...pedidoData, SubTotal: subtotal }))
+        actualizarInventario(pedidoData.IDProducto, pedidoData.Cantidad);
     }
 
     return (
@@ -170,6 +200,28 @@ const AdminPedidos = () => {
                             calculoSubtotal()
                     }}>Solicitar</button>
             </form>
+            <table className="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre Producto</th>
+                        <th>Descripción</th>
+                        <th>Precio</th>
+                        <th>Cantidad</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {Object.values(inventarioData).map((inventario) => (
+                        <tr key={inventario.IDProducto}>
+                            <td>{inventario.IDProducto}</td>
+                            <td>{inventario.NombreProducto}</td>
+                            <td>{inventario.Descripcion}</td>
+                            <td>{inventario.Precio}</td>
+                            <td>{inventario.Cantidad}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
         </div>
     )
 }

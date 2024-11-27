@@ -77,18 +77,17 @@ const AdminAjustesUsuarios = ({ userOption, setUserOption }) => {
 
     const selectUserOption = () => {
         if (!userOption) {
-            return usuarios();
+            return (
+                <article>{usuarios()}</article>
+            )
+
         } else if (selectedUser) {
             return <AdminModificarUsuario selectedUser={selectedUser} />;
         }
         return null;
     };
 
-    return (
-        <article>
-            {selectUserOption()}
-        </article>
-    )
+    return selectUserOption()
 }
 
 export default AdminAjustesUsuarios;

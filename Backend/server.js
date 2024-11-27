@@ -274,12 +274,8 @@ app.post("/api/Pedido", async (req, res) => {
 
     const pool = await getConnection();
 
-    const transaction = new sql.Transaction(pool);
-
-    await transaction.begin(); // Inicia la transacción
-
     //operacion dentro de una transacción
-    const result = await transaction
+    const result = await pool
       .request()
       .input("idProveedor", sql.Int, IDProveedor)
       .input("fechaPedido", sql.VarChar, FechaPedido)
@@ -294,9 +290,8 @@ app.post("/api/Pedido", async (req, res) => {
     }
 
     const IDPedido = result.recordset[0].IDPedido;
-    console.log(IDPedido)
 
-    const resultDetallePedido = await transaction
+    const resultDetallePedido = await pool
       .request()
       .input("idPedido", sql.Int, IDPedido)
       .input("idInventario", sql.Int, IDProducto)
@@ -309,27 +304,36 @@ app.post("/api/Pedido", async (req, res) => {
       return res.status(404).send("No fue posible ingresar el detalle del pedido");
     }
 
-    await transaction
+    const resultUpdateInve = await pool
       .request()
       .input("idProducto", sql.Int, IDProducto)
       .input("cantidad", sql.Int, Cantidad)
       .query("UPDATE Inventario SET Cantidad = Cantidad + @cantidad WHERE IDProducto = @idProducto");
 
-    // Confirmar la transacción si todo está bien
-    await transaction.commit();
+    if (resultUpdateInve.rowsAffected[0] === 0) {
+      return res.status(404).send("No fue posible ingresar el detalle del pedido");
+    }
 
   } catch (error) {
     console.error("Error en el servidor:", error.message);
 
-    // Deshacer la transacción si ocurre un error
-    if (transaction) {
-      await transaction.rollback();
-    }
+
     res.status(500).json({ success: false, message: "Error en el servidor" });
   }
 });
 
-
+//Consulta #12 - Obtener el inventario/Productos
+app.get("/api/InventarioProductos", async (req, res) => {
+  try {
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .query("SELECT P.IDProducto, NombreProducto, Descripcion, Precio, Cantidad FROM Producto AS P INNER JOIN Inventario AS I ON P.IDProducto = I.IDProducto");
+    res.json(result.recordset);
+  } catch (error) {
+    res.status(500).send("Error al obtener datos");
+  }
+});
 
 
 

@@ -12,7 +12,7 @@ const AdminBitacoraUsuarios = () => {
 
     const bitacora = () => {
         return (
-            <table className="tableBitacora">
+            <table className="table">
                 <thead>
                     <tr>
                         <th>ID</th>

@@ -20,8 +20,6 @@ button {
   border: none;
 }
 
-
-
 .swal-text {
   font-size: 24px;
 }
@@ -190,42 +188,50 @@ button {
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: transparent;
-  padding: 5vw;
-  border-radius: 5px;
-  border: 1px solid black;
-  width: 30vw;
-  box-shadow: 0 0 0.8vw black;
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 50%;
+  margin: 2rem auto;
+}
+
+.formContainer h2 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: #333;
 }
 
 .formInsertContainer {
   display: flex;
   flex-direction: column;
-  justify-content: left;
-  gap: 15px;
-}
-
-.formInsertContainer select {
-  width: 100%;
-  border-radius: 5px;
-  background-color: white;
+  gap: 1.5rem;
+  width: 60%;
 }
 
 .formInsertContainer label {
-  font-size: 2.2vw;
+  font-size: 1.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1vw;
+  gap: 0.5rem;
 }
 
-.formInsertContainer input {
-  height: 3vh;
-  width: 20vw;
-  padding-left: 0.5vw;
-  background-color: white;
-  border: 1px solid black;
+.formInsertContainer input,
+.formInsertContainer select {
+  padding: 0.8rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
   border-radius: 5px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.formInsertContainer input:focus,
+.formInsertContainer select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
 }
 
 .formInsertContainer button {
@@ -243,24 +249,26 @@ button {
   transform: scale(1.05);
 }
 
-.tableBitacora {
-  width: 100vw;
+.table {
+  width: 90%;
+  margin: 2rem auto;
   border-collapse: collapse;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.tableBitacora th,
-.tableBitacora td {
+.table th,
+.table td {
   border: 1px solid #ddd;
   padding: 8px;
   text-align: left;
   font-size: 1.5vw;
 }
 
-.tableBitacora tr:nth-child(odd) {
+.table tr:nth-child(odd) {
   background-color: #f9f9f9;
 }
 
-.tableBitacora tr:nth-child(even) {
+.table tr:nth-child(even) {
   background-color: #e6e6e6;
 }
 
