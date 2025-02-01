@@ -6,7 +6,7 @@ import { RiLockPasswordFill } from "react-icons/ri";
 import { MdEmail } from "react-icons/md";
 import Swal from "sweetalert2";
 
-const AdminAñadirUsuarios = () => {
+const AdminAñadirUsuarios = ({ nombreBienvenida }) => {
     const [formData, setDataForm] = useState({
         nombreUsuario: "",
         nombre: "",

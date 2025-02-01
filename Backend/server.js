@@ -4,7 +4,12 @@ const cors = require("cors");
 const { sql, getConnection } = require("./db");
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: "http://localhost:5173",
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
+
 app.use(express.json());
 
 //Consulta #1 - Traer toda la información de la tabla "Usuario"
@@ -335,7 +340,225 @@ app.get("/api/InventarioProductos", async (req, res) => {
   }
 });
 
+//Consukta #13 - Añadir los detalles de la venta
+app.post("/api/Venta", async (req, res) => {
+  const { FechaVenta, Total, FormaPago, IVA, TipoCambio, Colones, Dolares, Cantidad, Precio, SubTotal, Tarjeta, Vuelto, NombreProducto, IDProducto } = req.body;
 
+  // console.log(FechaVenta);
+  // console.log(Total);
+  // console.log(FormaPago);
+  // console.log(IVA);
+  // console.log(TipoCambio);
+  // console.log(Colones);
+  // console.log(Dolares);
+  // console.log(Cantidad);
+  // console.log(Precio);
+  // console.log(SubTotal);
+
+  try {
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .input("fechaVenta", sql.VarChar, FechaVenta)
+      .input("total", sql.Decimal, Total)
+      .input("formaPago", sql.VarChar, FormaPago)
+      .input("iva", sql.Decimal, IVA)
+      .input("tipoCambio", sql.Decimal, TipoCambio)
+      .query("INSERT INTO Ventas (FechaVenta, Total, FormaPago, IVA, TipoCambio) OUTPUT INSERTED.IDVenta VALUES (@fechaVenta, @total, @formaPago, @iva, @tipoCambio)");
+
+    if (result.rowsAffected[0] === 0) {
+      return res.status(404).send("No fue posible ingresar la venta");
+    }
+
+    const IDVenta = result.recordset[0].IDVenta;
+
+    const resultDetalleVenta = await pool
+      .request()
+      .input("idVenta", sql.Int, IDVenta)
+      .input("colones", sql.Decimal, Colones)
+      .input("dolares", sql.Decimal, Dolares)
+      .input("cantidad", sql.Decimal, Cantidad)
+      .input("precio", sql.Decimal, Precio)
+      .input("subTotal", sql.Decimal, SubTotal)
+      .query("INSERT INTO DetalleVenta (IDVenta, Colones, Dolares, Cantidad, PrecioUnitario, SubTotal) VALUES (@idVenta, @colones, @dolares, @cantidad, @precio, @subTotal)");
+
+    if (resultDetalleVenta.rowsAffected[0] === 0) {
+      return res.status(404).send("No fue posible ingresar el detalle de la venta");
+    }
+
+    const resultFactura = await pool
+      .request()
+      .input("idVenta", sql.Int, IDVenta)
+      .input("tarjeta", sql.Decimal, Tarjeta)
+      .input("vuelto", sql.Decimal, Vuelto)
+      .input("subTotal", sql.Decimal, SubTotal)
+      .input("nombreProducto", sql.VarChar, NombreProducto)
+      .input("idProducto", sql.Int, IDProducto)
+      .query(`INSERT INTO Factura (IDDetalleVenta, IDProducto, NombreProducto, Colones, Dolares, Tarjeta, Cantidad, SubTotal, Vuelto)
+        SELECT 
+        dv.IDDetalleVenta,
+        @idProducto AS IDProducto,
+        @nombreProducto AS NombreProducto,
+        dv.Colones AS Colones, 
+        dv.Dolares AS Dolares, 
+        @tarjeta AS Tarjeta, 
+        dv.Cantidad AS Cantidad,
+        @subTotal AS SubTotal, 
+        @vuelto AS Vuelto 
+        FROM DetalleVenta dv
+        WHERE dv.IDVenta = @idVenta; `)
+
+    if (resultFactura.rowsAffected[0] === 0) {
+      return res.status(404).send("No fue posible ingresar la factura");
+    }
+
+    res.status(200).send("Venta Exitosa");
+  } catch (error) {
+    console.error("Error en el servidor:", error.message);
+
+
+    res.status(500).json({ success: false, message: "Error en el servidor" });
+  }
+});
+
+//Consulta #14 - Obtener todas las facturas
+app.get("/api/ObtenerFacturas", async (req, res) => {
+  try {
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .query("SELECT * FROM Factura");
+    res.json(result.recordset);
+  } catch (error) {
+    res.status(500).send("Error al obtener datos");
+  }
+});
+
+//Consulta #15 - Eliminar una factura
+app.delete("/api/CobrarFactura", async (req, res) => {
+  const { idEliminar } = req.query;
+
+  try {
+    const pool = await getConnection();
+    const resultBitacora = await pool.request()
+      .input("id", sql.Int, idEliminar)
+      .query("DELETE FROM Factura WHERE IDFactura = @id")
+    if (resultBitacora.rowsAffected[0] === 0) {
+      return res.status(404).send("Error al eliminar la factura");
+    }
+
+    res.status(200).send("Factura eliminada exitosamente");
+  } catch (error) {
+    res.status(500).send("Error al eliminar la factura");
+  }
+});
+
+//Consukta #16 - Actualizar caja
+app.put("/api/ActualizarCaja", async (req, res) => {
+  const { Colones, Dolares, Vuelto } = req.body;
+
+  console.log("Colones: ", Colones);
+  console.log("Dolares: ", Dolares);
+  console.log("Vuelto: ", Vuelto);
+
+  try {
+    const pool = await getConnection();
+    const result = await pool.request()
+      .input("colones", sql.Decimal, parseFloat(Colones) || 0)
+      .input("dolares", sql.Decimal, parseFloat(Dolares) || 0)
+      .input("vuelto", sql.Decimal, parseFloat(Vuelto) || 0)
+      .query("UPDATE Caja SET Colones = Colones + @colones - @vuelto, Dolares = Dolares + @dolares");
+
+    if (result.rowsAffected[0] === 0) {
+      return res.status(404).send("Caja no encontrada");
+    }
+
+    res.status(200).send("Caja actualizada");
+  } catch (error) {
+    res.status(500).send("Error al actualizar la caja");
+  }
+});
+
+//Consulta #17 - Actualizar la cantidad de inventario (reducir)
+app.put("/api/ReducirCantidadInventario", async (req, res) => {
+  const { Cantidad, IDProducto } = req.body;
+
+  if (!Cantidad || !IDProducto) {
+    return res.status(400).send("Faltan datos requeridos");
+  }
+
+  try {
+    const pool = await getConnection();
+    const result = await pool.request()
+      .input("cantidad", sql.Decimal, Cantidad)
+      .input("idProducto", sql.Int, IDProducto)
+      .query("UPDATE Inventario SET Cantidad = Cantidad - @cantidad WHERE IDProducto = @idProducto");
+
+    if (result.rowsAffected[0] === 0) {
+      return res.status(404).send("Caja no encontrada");
+    }
+
+    res.status(200).send("Caja actualizada");
+  } catch (error) {
+    res.status(500).send("Error al actualizar la caja");
+  }
+});
+
+//Consulta #18 - Obtener la caja
+app.get("/api/ObtenerCaja", async (req, res) => {
+  try {
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .query("SELECT * FROM Caja");
+    res.json(result.recordset);
+  } catch (error) {
+    res.status(500).send("Error al obtener datos");
+  }
+});
+
+//Consulta #19 - Sumar el total de venta diario
+app.put("/api/SumarTotalDiario", async (req, res) => {
+  const { TotalDiario } = req.body;
+
+  try {
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .input("totalDiario", sql.Decimal, parseFloat(TotalDiario) || 0)
+      .query("UPDATE TotalDiario SET TotalDiario = TotalDiario + @totalDiario")
+
+    res.status(200).send("Total Sumado exitosamente")
+  } catch (error) {
+    res.status(500).send("Error al sumar al total diario");
+  }
+})
+
+app.get("/api/ObtenerTotalDiario", async (req, res) => {
+  try {
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .query("SELECT * FROM TotalDiario");
+    res.json(result.recordset);
+  } catch (error) {
+    res.status(500).send("Error al obtener datos");
+  }
+});
+
+app.put("/api/ResetTotalDiario", async (req, res) => {
+
+  try {
+    const pool = await getConnection();
+    const result = await pool
+      .request()
+      .query("UPDATE TotalDiario SET TotalDiario = 0")
+
+    res.status(200).send("Exito al resetear")
+  } catch (error) {
+    res.status(500).send("Error al resetear");
+  }
+})
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Servidor corriendo en el puerto ${PORT} 🗿`));

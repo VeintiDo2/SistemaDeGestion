@@ -4,7 +4,7 @@ import Swal from "sweetalert2";
 import { PiUserFill } from "react-icons/pi";
 import { RiLockPasswordFill } from "react-icons/ri";
 
-const Login = ({ onLoginSuccess, setRol, isLoggedIn }) => {
+const Login = ({ setnombreBienvenida, onLoginSuccess, setRol, isLoggedIn }) => {
     const [nombreUsuario, setNombreUsuario] = useState("");
     const [contraseña, setContraseña] = useState("");
     const [ultimoNombre, setUltimoNombre] = useState("");
@@ -115,6 +115,7 @@ const Login = ({ onLoginSuccess, setRol, isLoggedIn }) => {
 
                 if (usuarioId) {
                     await actualizarBitacora(usuarioId, fecha, hora, evento);
+                    setnombreBienvenida(nombreUsuario)
                     onLoginSuccess();
                     setIntentos(0);
                 } else {
@@ -126,7 +127,7 @@ const Login = ({ onLoginSuccess, setRol, isLoggedIn }) => {
                     text: "Credenciales incorrectas. Por favor verifica tus datos.",
                     icon: "warning",
                 });
-
+                
                 const datosUsuario = await obtenerDatos();
                 const usuarioId = datosUsuario.IDUsuario;
                 if (usuarioId) {

@@ -1,25 +1,62 @@
-import AdminAñadirUsuarios from "./AdministradorComponents/AdminAñadirUsuarios"
-import AdminAjustesUsuarios from "./AdministradorComponents/AdminAjustesUsuarios"
-import AdminBitacoraUsuarios from "./AdministradorComponents/AdminBitacoraUsuarios"
-import AdminPedidos from "./AdministradorComponents/AdminPedidos"
+import CajeroCajaDinero from "./CajeroComponents/CajeroCajaDinero";
+import CajeroCancelar from "./CajeroComponents/CajeroCancelar";
 
-const Header = ({ setModo, setUserOption }) => {
+import VendedorFacturacion from "./VendedorComponents/VendedorFacturacion";
+
+const Header = ({ optionsHeader, setModo, setUserOption, rol }) => {
+
+    const selectOptions = [
+        { id: 5, text: "Cancelar / Cajero", component: <CajeroCancelar></CajeroCancelar> },
+        { id: 6, text: "Informes / Cajero", component: <CajeroCajaDinero></CajeroCajaDinero> },
+        { id: 7, text: "Facturación / Vendedor", component: <VendedorFacturacion></VendedorFacturacion> },
+    ];
 
     const handleClickModoMenu = (selected) => {
-        setModo(selected)
-        setUserOption(false)
+        setModo(selected);
+        setUserOption(false);
+    };
+
+    const handleSelectChange = (event) => {
+        const selectedOption = selectOptions.find(option => option.id === parseInt(event.target.value));
+        if (selectedOption) {
+            handleClickModoMenu(selectedOption.component);
+        }
+    };
+
+    const selectAdmin = (rol) => {
+
+        if (rol == "Administrador") {
+            return (
+                <select defaultValue="" onChange={handleSelectChange} className="headerSelect">
+                    <option value="" disabled >Seleccione una opción</option>
+                    {selectOptions.map((option) => (
+                        <option key={option.id} value={option.id}>
+                            {option.text}
+                        </option>
+                    ))}
+                </select>
+            )
+        } else {
+            return null;
+        }
     }
 
     return (
         <header className="header">
             <div className="navigatorBar">
-                <button className="headerButton" onClick={() => handleClickModoMenu(<AdminAñadirUsuarios></AdminAñadirUsuarios>)} >Añadir Usuarios</button>
-                <button className="headerButton" onClick={() => handleClickModoMenu(<AdminAjustesUsuarios></AdminAjustesUsuarios>)} >Ajustes de Usuarios</button>
-                <button className="headerButton" onClick={() => handleClickModoMenu(<AdminBitacoraUsuarios></AdminBitacoraUsuarios>)} >Bitacora</button>
-                <button className="headerButton" onClick={() => handleClickModoMenu(<AdminPedidos></AdminPedidos>)}>Pedidos</button>
+                {optionsHeader.map((option) => (
+                    <button
+                        key={option.id}
+                        onClick={() => handleClickModoMenu(option.component)}
+                        className="headerButton">
+                        {option.text}
+                    </button>
+                ))}
+
+                {selectAdmin(rol)}
             </div>
         </header>
-    )
-}
+    );
+};
 
 export default Header;
